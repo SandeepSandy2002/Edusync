@@ -131,4 +131,54 @@ public class CoursesController : ControllerBase
         return Ok(myCourses);
     }
 
+    [HttpDelete("delcourse/{courseId}")]
+    [Authorize(Roles = "Instructor")]
+    public async Task<IActionResult> DeleteCourse(Guid courseId)
+    {
+        var instructorId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        var course = await _context.Courses.FirstOrDefaultAsync(c => c.CourseId == courseId);
+
+        if (course == null)
+            return NotFound("Course not found.");
+
+        if (course.InstructorId.ToString() != instructorId)
+            return Forbid("You are not authorized to delete this course.");
+
+        _context.Courses.Remove(course);
+        await _context.SaveChangesAsync();
+
+        return Ok("Course deleted successfully.");
+    }
+
+
+    [HttpPut("updatecourse/{courseId}")]
+    [Authorize(Roles = "Instructor")]
+    public async Task<IActionResult> UpdateCourse(Guid courseId, [FromForm] CourseUpdateDto dto)
+    {
+        var instructorId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        var course = await _context.Courses.FirstOrDefaultAsync(c => c.CourseId == courseId);
+
+        if (course == null)
+            return NotFound("Course not found.");
+
+        if (course.InstructorId.ToString() != instructorId)
+            return Forbid("You are not authorized to edit this course.");
+
+        // Update fields
+        if (!string.IsNullOrEmpty(dto.Title)) course.Title = dto.Title;
+        if (!string.IsNullOrEmpty(dto.Description)) course.Description = dto.Description;
+
+        if (dto.MediaFile != null && dto.MediaFile.Length > 0)
+        {
+            var mediaUrl = await _blobService.UploadFileAsync(dto.MediaFile);
+            course.MediaUrl = mediaUrl;
+        }
+
+        await _context.SaveChangesAsync();
+
+        return Ok(new { message = "Course updated successfully.", course });
+    }
+
 }
