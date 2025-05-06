@@ -101,30 +101,34 @@ public class CoursesController : ControllerBase
 
         return Ok(coursesWithInstructor);
     }
-    // GET method to fetch courses by instructor name
-    [HttpGet("instructor/{name}")]
-    [Authorize]
-    public async Task<IActionResult> GetCoursesByInstructorName(string name)
-    {
-        var coursesWithInstructor = await (from course in _context.Courses
-                                           join instructor in _context.Users on course.InstructorId equals instructor.UserId
-                                           where instructor.Name.ToLower().Contains(name.ToLower())
-                                           select new
-                                           {
-                                               course.CourseId,
-                                               course.Title,
-                                               course.Description,
-                                               course.MediaUrl,
-                                               InstructorName = instructor.Name,
-                                               InstructorEmail = instructor.Email
-                                           }).ToListAsync();
 
-        if (!coursesWithInstructor.Any())
+    [HttpGet("mycourses")]
+    [Authorize(Roles = "Instructor")]
+    public async Task<IActionResult> GetMyCourses()
+    {
+        var instructorIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (string.IsNullOrEmpty(instructorIdClaim) || !Guid.TryParse(instructorIdClaim, out Guid instructorId))
         {
-            return NotFound($"No courses found for instructor name containing '{name}'.");
+            return Unauthorized("Invalid instructor ID.");
         }
 
-        return Ok(coursesWithInstructor);
+        var myCourses = await (from course in _context.Courses
+                               where course.InstructorId == instructorId
+                               select new
+                               {
+                                   course.CourseId,
+                                   course.Title,
+                                   course.Description,
+                                   course.MediaUrl
+                               }).ToListAsync();
+
+        if (!myCourses.Any())
+        {
+            return NotFound("You have not uploaded any courses.");
+        }
+
+        return Ok(myCourses);
     }
 
 }
