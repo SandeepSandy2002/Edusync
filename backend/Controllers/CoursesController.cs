@@ -78,4 +78,27 @@ public class CoursesController : ControllerBase
 
         return Ok(filteredCourses);
     }
+    [HttpGet("allcourses")]
+    [Authorize]
+    public async Task<IActionResult> GetAllCourses()
+    {
+        var coursesWithInstructor = await (from course in _context.Courses
+                                           join instructor in _context.Users on course.InstructorId equals instructor.UserId
+                                           select new
+                                           {
+                                               course.CourseId,
+                                               course.Title,
+                                               course.Description,
+                                               course.MediaUrl,
+                                               InstructorName = instructor.Name,
+                                               InstructorEmail = instructor.Email
+                                           }).ToListAsync();
+
+        if (!coursesWithInstructor.Any())
+        {
+            return NotFound("No courses available.");
+        }
+
+        return Ok(coursesWithInstructor);
+    }
 }

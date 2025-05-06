@@ -5,7 +5,7 @@ using System.Text;
 using backend.data;
 using backend.Services;
 
-namespace EduSync.Backend
+namespace backend
 {
     public class Program
     {
@@ -29,6 +29,17 @@ namespace EduSync.Backend
             // Add controllers
             builder.Services.AddControllers();
             builder.Services.AddScoped<BlobStorageService>();
+
+            // Add CORS policy
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAll", policy =>
+                {
+                    policy.AllowAnyOrigin()
+                          .AllowAnyMethod()
+                          .AllowAnyHeader();
+                });
+            });
 
             // JWT Authentication configuration
             builder.Services.AddAuthentication(options =>
@@ -89,7 +100,10 @@ namespace EduSync.Backend
 
             app.UseHttpsRedirection();
 
-            // ✅ Order matters: Authentication first, then Authorization
+            // Enable CORS
+            app.UseCors("AllowAll");
+
+            // Enable authentication & authorization
             app.UseAuthentication();
             app.UseAuthorization();
 

@@ -48,11 +48,11 @@ const Login = () => {
         password,
       });
 
-      const { token, name, userId, role } = response.data;
+      const { jwt, name, role } = response.data;
 
-      localStorage.setItem("token", token);
+      localStorage.setItem("token", jwt);
       localStorage.setItem("name", name);
-      localStorage.setItem("userId", userId);
+      // localStorage.setItem("userId", email);
       localStorage.setItem("role", role); // ✅ role returned from backend
 
       navigate("/dashboard");

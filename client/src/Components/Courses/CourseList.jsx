@@ -9,7 +9,7 @@ const CourseList = () => {
   useEffect(() => {
     const fetchCourses = async () => {
       try {
-        const response = await axios.get("http://localhost:5258/api/Courses", {
+        const response = await axios.get("http://localhost:5258/api/Courses/allcourses", {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`
           }
