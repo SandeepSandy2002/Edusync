@@ -1,5 +1,8 @@
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using backend.data;  // Replace with your actual namespace if different
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using backend.data;  // Adjust if needed
 
 namespace EduSync.Backend
 {
@@ -9,28 +12,49 @@ namespace EduSync.Backend
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
+            // Load configuration
+            var configuration = builder.Configuration;
 
-            // Register DbContext with retry logic for transient errors
+            // Add DbContext with retry logic
             builder.Services.AddDbContext<EduSyncDbContext>(options =>
-                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"),
+                options.UseSqlServer(configuration.GetConnectionString("DefaultConnection"),
                     sqlOptions => sqlOptions.EnableRetryOnFailure(
-                        maxRetryCount: 3,           // Number of retry attempts
-                        maxRetryDelay: TimeSpan.FromSeconds(5), // Delay between retries
-                        errorNumbersToAdd: null)    // Specify any specific error codes if needed
+                        maxRetryCount: 3,
+                        maxRetryDelay: TimeSpan.FromSeconds(5),
+                        errorNumbersToAdd: null)
                 )
             );
 
-            // Add controllers to the container
+            // Add controllers
             builder.Services.AddControllers();
 
-            // Configure Swagger/OpenAPI
+            // JWT Authentication configuration
+            builder.Services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = configuration["Jwt:Issuer"],
+                    ValidAudience = configuration["Jwt:Audience"],
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"]))
+                };
+            });
+
+            // Swagger
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
             var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
+            // Middleware pipeline
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
@@ -39,10 +63,10 @@ namespace EduSync.Backend
 
             app.UseHttpsRedirection();
 
+            // ✅ Order matters: Authentication first, then Authorization
             app.UseAuthentication();
             app.UseAuthorization();
 
-            // Map the controllers (API routes)
             app.MapControllers();
 
             app.Run();
