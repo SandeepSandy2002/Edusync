@@ -36,3 +36,30 @@
     transform: rotate(360deg);
   }
 }
+
+.transition {
+  transition: transform 0.2s ease;
+}
+.transition:hover {
+  transform: scale(1.02);
+}
+
+.placeholder {
+  background-color: #e0e0e0;
+  border-radius: 4px;
+  min-height: 1rem;
+}
+.placeholder-glow .placeholder {
+  animation: placeholder-glow 1.2s ease-in-out infinite;
+}
+@keyframes placeholder-glow {
+  0% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.5;
+  }
+}

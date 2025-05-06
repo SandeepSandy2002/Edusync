@@ -10,6 +10,9 @@ import AttemptQuiz from "./Components/Quiz/AttemptQuiz";
 import Results from "./Components/Quiz/Results";
 import Navbar from "./Components/Navbar";
 import PrivateRoute from "./Components/Auth/PrivateRoute";
+import CourseDetail from "./Components/Courses/CourseDetail";
+import InstructorCourses from "./Components/Courses/InstructorCourses";
+import DetailedInsCourse from "./Components/Courses/DetailedInsCourse";
 import bootstrap from "bootstrap/dist/css/bootstrap.min.css";
 function App() {
   return (
@@ -36,6 +39,11 @@ function App() {
         <Route path="/results" element={
           <PrivateRoute><Results /></PrivateRoute>
         } />
+        <Route path="/course/:courseTitle" element={<PrivateRoute><CourseDetail /></PrivateRoute>} />
+        <Route path="/instructor/courses" element={<PrivateRoute><InstructorCourses /></PrivateRoute>} />
+        <Route path="/instructor/course/:courseTitle" element={<PrivateRoute><DetailedInsCourse /></PrivateRoute>} />
+
+
       </Routes>
     </Router>
   );

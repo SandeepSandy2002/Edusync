@@ -10,13 +10,8 @@ const CourseCard = memo(({ course, onClick }) => (
           <h5 className="card-title text-primary">{course.title}</h5>
           <p className="card-text text-secondary">{course.description}</p>
         </div>
-        <div className="mt-3 small text-muted">
-          👨‍🏫 <strong>{course.instructorName}</strong>
-          <br />
-          📧 {course.instructorEmail}
-        </div>
         <button
-          className="btn btn-outline-primary mt-3"
+          className="btn btn-outline-primary mt-3 align-self-start"
           onClick={onClick}
         >
           View Details
@@ -26,21 +21,20 @@ const CourseCard = memo(({ course, onClick }) => (
   </div>
 ));
 
-const CourseList = () => {
+const InstructorCourses = () => {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchCourses = async () => {
+    const fetchInstructorCourses = async () => {
       try {
-        const response = await axios.get("http://localhost:5258/api/Courses/allcourses", {
+        const response = await axios.get("http://localhost:5258/api/Courses/mycourses", {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`
           }
         });
 
-        // ✅ Deduplicate by course title
         const seen = new Set();
         const uniqueCourses = response.data.filter(course => {
           if (seen.has(course.title)) return false;
@@ -50,19 +44,19 @@ const CourseList = () => {
 
         setCourses(uniqueCourses);
       } catch (error) {
-        console.error("❌ Error fetching courses", error);
-        alert("Failed to load courses. Please try again later.");
+        console.error("❌ Error fetching instructor courses", error);
+        alert("Failed to load your courses.");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchCourses();
+    fetchInstructorCourses();
   }, []);
 
   return (
     <div className="container mt-4">
-      <h3 className="mb-4 text-center">📚 All Available Courses</h3>
+      <h3 className="mb-4 text-center">🎓 Your Uploaded Courses</h3>
 
       {loading ? (
         <div className="row">
@@ -79,14 +73,16 @@ const CourseList = () => {
           ))}
         </div>
       ) : courses.length === 0 ? (
-        <div className="text-center text-muted">No courses available.</div>
+        <div className="text-center text-muted">No courses uploaded by you yet.</div>
       ) : (
         <div className="row">
           {courses.map((course, index) => (
             <CourseCard
               key={`${course.title}-${index}`}
               course={course}
-              onClick={() => navigate(`/course/${encodeURIComponent(course.title)}`)}
+              onClick={() =>
+                navigate(`/instructor/course/${encodeURIComponent(course.title)}`)
+              }
             />
           ))}
         </div>
@@ -95,4 +91,4 @@ const CourseList = () => {
   );
 };
 
-export default CourseList;
+export default InstructorCourses;
