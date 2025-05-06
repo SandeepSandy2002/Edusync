@@ -101,4 +101,30 @@ public class CoursesController : ControllerBase
 
         return Ok(coursesWithInstructor);
     }
+    // GET method to fetch courses by instructor name
+    [HttpGet("instructor/{name}")]
+    [Authorize]
+    public async Task<IActionResult> GetCoursesByInstructorName(string name)
+    {
+        var coursesWithInstructor = await (from course in _context.Courses
+                                           join instructor in _context.Users on course.InstructorId equals instructor.UserId
+                                           where instructor.Name.ToLower().Contains(name.ToLower())
+                                           select new
+                                           {
+                                               course.CourseId,
+                                               course.Title,
+                                               course.Description,
+                                               course.MediaUrl,
+                                               InstructorName = instructor.Name,
+                                               InstructorEmail = instructor.Email
+                                           }).ToListAsync();
+
+        if (!coursesWithInstructor.Any())
+        {
+            return NotFound($"No courses found for instructor name containing '{name}'.");
+        }
+
+        return Ok(coursesWithInstructor);
+    }
+
 }
