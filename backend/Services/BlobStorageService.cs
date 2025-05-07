@@ -1,4 +1,5 @@
-﻿using Azure.Storage.Blobs;
+﻿// backend/Services/BlobStorageService.cs
+using Azure.Storage.Blobs;
 
 namespace backend.Services
 {
@@ -27,6 +28,24 @@ namespace backend.Services
             }
 
             return blobClient.Uri.ToString();
+        }
+
+        public async Task DeleteFileAsync(string fileUrl)
+        {
+            if (string.IsNullOrEmpty(fileUrl)) return;
+
+            try
+            {
+                var blobName = Path.GetFileName(new Uri(fileUrl).LocalPath);
+                var containerClient = _blobServiceClient.GetBlobContainerClient(_containerName);
+                var blobClient = containerClient.GetBlobClient(blobName);
+
+                await blobClient.DeleteIfExistsAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error deleting blob: {ex.Message}");
+            }
         }
     }
 }

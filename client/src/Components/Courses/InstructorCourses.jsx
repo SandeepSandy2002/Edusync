@@ -24,6 +24,7 @@ const CourseCard = memo(({ course, onClick }) => (
 const InstructorCourses = () => {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -35,8 +36,11 @@ const InstructorCourses = () => {
           }
         });
 
+        const data = response.data;
+        const courseArray = Array.isArray(data) ? data : data.courses || [];
+
         const seen = new Set();
-        const uniqueCourses = response.data.filter(course => {
+        const uniqueCourses = courseArray.filter(course => {
           if (seen.has(course.title)) return false;
           seen.add(course.title);
           return true;
@@ -45,7 +49,7 @@ const InstructorCourses = () => {
         setCourses(uniqueCourses);
       } catch (error) {
         console.error("❌ Error fetching instructor courses", error);
-        alert("Failed to load your courses.");
+        setError("Failed to load your courses.");
       } finally {
         setLoading(false);
       }
@@ -57,6 +61,12 @@ const InstructorCourses = () => {
   return (
     <div className="container mt-4">
       <h3 className="mb-4 text-center">🎓 Your Uploaded Courses</h3>
+
+      {error && (
+        <div className="alert alert-danger text-center" role="alert">
+          {error}
+        </div>
+      )}
 
       {loading ? (
         <div className="row">

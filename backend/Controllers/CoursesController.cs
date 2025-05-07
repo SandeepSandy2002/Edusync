@@ -1,4 +1,5 @@
-﻿using backend.data;
+﻿// backend/Controllers/CoursesController.cs
+using backend.data;
 using backend.Dtos;
 using backend.Models;
 using backend.Services;
@@ -6,7 +7,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
-using System.Linq;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -21,13 +21,11 @@ public class CoursesController : ControllerBase
         _blobService = blobService;
     }
 
-    // POST method to add course (already implemented)
     [HttpPost]
     [Authorize(Roles = "Instructor")]
     public async Task<IActionResult> AddCourse([FromForm] CourseCreateDto dto)
     {
         var instructorId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
         if (dto.MediaFile == null || dto.MediaFile.Length == 0)
             return BadRequest("Media file is required.");
 
@@ -48,12 +46,10 @@ public class CoursesController : ControllerBase
         return Ok(new { message = "Course created successfully", course });
     }
 
-    // GET method to fetch courses by title, with instructor details (without modifying the model)
     [HttpGet("title/{title}")]
     [Authorize]
     public async Task<IActionResult> GetCoursesByTitle(string title)
     {
-        // Fetch courses with the instructor's details without using 'Contains' directly in the query
         var coursesWithInstructor = await (from course in _context.Courses
                                            join instructor in _context.Users on course.InstructorId equals instructor.UserId
                                            select new
@@ -66,18 +62,16 @@ public class CoursesController : ControllerBase
                                                InstructorEmail = instructor.Email
                                            }).ToListAsync();
 
-        // Filter the results after fetching them (client-side)
         var filteredCourses = coursesWithInstructor
-            .Where(c => c.Title.Contains(title, StringComparison.OrdinalIgnoreCase)) // Case-insensitive search
+            .Where(c => c.Title.Contains(title, StringComparison.OrdinalIgnoreCase))
             .ToList();
 
         if (!filteredCourses.Any())
-        {
             return NotFound($"No courses found with the title '{title}'.");
-        }
 
         return Ok(filteredCourses);
     }
+
     [HttpGet("allcourses")]
     [Authorize]
     public async Task<IActionResult> GetAllCourses()
@@ -95,9 +89,7 @@ public class CoursesController : ControllerBase
                                            }).ToListAsync();
 
         if (!coursesWithInstructor.Any())
-        {
             return NotFound("No courses available.");
-        }
 
         return Ok(coursesWithInstructor);
     }
@@ -108,10 +100,8 @@ public class CoursesController : ControllerBase
     {
         var instructorIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        if (string.IsNullOrEmpty(instructorIdClaim) || !Guid.TryParse(instructorIdClaim, out Guid instructorId))
-        {
+        if (!Guid.TryParse(instructorIdClaim, out Guid instructorId))
             return Unauthorized("Invalid instructor ID.");
-        }
 
         var myCourses = await (from course in _context.Courses
                                where course.InstructorId == instructorId
@@ -124,9 +114,7 @@ public class CoursesController : ControllerBase
                                }).ToListAsync();
 
         if (!myCourses.Any())
-        {
-            return NotFound("You have not uploaded any courses.");
-        }
+            return Ok(new { message = "You have not uploaded any courses yet.", courses = new List<object>() });
 
         return Ok(myCourses);
     }
@@ -136,7 +124,6 @@ public class CoursesController : ControllerBase
     public async Task<IActionResult> DeleteCourse(Guid courseId)
     {
         var instructorId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
         var course = await _context.Courses.FirstOrDefaultAsync(c => c.CourseId == courseId);
 
         if (course == null)
@@ -145,19 +132,45 @@ public class CoursesController : ControllerBase
         if (course.InstructorId.ToString() != instructorId)
             return Forbid("You are not authorized to delete this course.");
 
+        await _blobService.DeleteFileAsync(course.MediaUrl);
         _context.Courses.Remove(course);
         await _context.SaveChangesAsync();
 
         return Ok("Course deleted successfully.");
     }
 
+    [HttpDelete("delete-course-by-title/{title}")]
+    [Authorize(Roles = "Instructor")]
+    public async Task<IActionResult> DeleteCourseByTitle(string title)
+    {
+        var instructorId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        var coursesToDelete = await _context.Courses
+            .Where(c => c.Title.ToLower() == title.ToLower() && c.InstructorId.ToString() == instructorId)
+            .ToListAsync();
+
+        if (!coursesToDelete.Any())
+            return NotFound("No courses found for the given title.");
+
+        foreach (var course in coursesToDelete)
+        {
+            if (!string.IsNullOrEmpty(course.MediaUrl))
+            {
+                await _blobService.DeleteFileAsync(course.MediaUrl);
+            }
+        }
+
+        _context.Courses.RemoveRange(coursesToDelete);
+        await _context.SaveChangesAsync();
+
+        return Ok("All files and records for the specified instructor and course title were deleted successfully.");
+    }
 
     [HttpPut("updatecourse/{courseId}")]
     [Authorize(Roles = "Instructor")]
     public async Task<IActionResult> UpdateCourse(Guid courseId, [FromForm] CourseUpdateDto dto)
     {
         var instructorId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
         var course = await _context.Courses.FirstOrDefaultAsync(c => c.CourseId == courseId);
 
         if (course == null)
@@ -166,7 +179,6 @@ public class CoursesController : ControllerBase
         if (course.InstructorId.ToString() != instructorId)
             return Forbid("You are not authorized to edit this course.");
 
-        // Update fields
         if (!string.IsNullOrEmpty(dto.Title)) course.Title = dto.Title;
         if (!string.IsNullOrEmpty(dto.Description)) course.Description = dto.Description;
 
@@ -181,4 +193,50 @@ public class CoursesController : ControllerBase
         return Ok(new { message = "Course updated successfully.", course });
     }
 
+    [HttpPut("replace")]
+    [Authorize(Roles = "Instructor")]
+    public async Task<IActionResult> ReplaceMediaFile([FromForm] IFormFile MediaFile, [FromForm] string ExistingMediaUrl)
+    {
+        if (MediaFile == null || string.IsNullOrEmpty(ExistingMediaUrl))
+            return BadRequest("Invalid file or media URL.");
+
+        var course = await _context.Courses.FirstOrDefaultAsync(c => c.MediaUrl == ExistingMediaUrl);
+        if (course == null)
+            return NotFound("Course not found for the given media URL.");
+
+        var newUrl = await _blobService.UploadFileAsync(MediaFile);
+        course.MediaUrl = newUrl;
+        await _context.SaveChangesAsync();
+
+        return Ok(new { message = "File replaced successfully.", newUrl });
+    }
+
+    [HttpPut("update-description")]
+    [Authorize(Roles = "Instructor")]
+    public async Task<IActionResult> UpdateDescription([FromBody] UpdateDescriptionDto dto)
+    {
+        var course = await _context.Courses.FirstOrDefaultAsync(c => c.MediaUrl == dto.MediaUrl);
+        if (course == null)
+            return NotFound("Course not found.");
+
+        course.Description = dto.Description;
+        await _context.SaveChangesAsync();
+
+        return Ok("Description updated.");
+    }
+
+    [HttpDelete("delete-file")]
+    [Authorize(Roles = "Instructor")]
+    public async Task<IActionResult> DeleteFile([FromBody] DeleteFileDto dto)
+    {
+        var course = await _context.Courses.FirstOrDefaultAsync(c => c.MediaUrl == dto.MediaUrl);
+        if (course == null)
+            return NotFound("File not associated with any course.");
+
+        await _blobService.DeleteFileAsync(course.MediaUrl);
+        _context.Courses.Remove(course);
+        await _context.SaveChangesAsync();
+
+        return Ok("File deleted.");
+    }
 }

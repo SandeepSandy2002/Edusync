@@ -22,13 +22,14 @@ const DetailedInsCourse = () => {
                 headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
             });
 
-            const matched = response.data.filter(
+            const data = response.data;
+            const matched = Array.isArray(data) ? data.filter(
                 c => c.title.toLowerCase() === decodeURIComponent(courseTitle).toLowerCase()
-            );
+            ) : [];
 
             if (matched.length === 0) {
-                alert("No course files found.");
-                navigate("/instructor/courses");
+                setCourseMeta({ title: decodeURIComponent(courseTitle) });
+                setCourseFiles([]);
                 return;
             }
 
@@ -42,12 +43,14 @@ const DetailedInsCourse = () => {
                 matched.map(file => ({
                     mediaUrl: file.mediaUrl,
                     fileName: file.mediaUrl.split('/').pop(),
-                    description: file.description
+                    description: file.description,
+                    inputRef: React.createRef()
                 }))
             );
         } catch (err) {
             console.error("Error loading course files:", err);
-            alert("Failed to load course files.");
+            setCourseMeta({ title: decodeURIComponent(courseTitle) });
+            setCourseFiles([]);
         } finally {
             setLoading(false);
         }
@@ -90,7 +93,7 @@ const DetailedInsCourse = () => {
         }
     };
 
-    const handleReplaceFile = async (e, mediaUrl) => {
+    const handleReplaceFile = async (e, mediaUrl, fileObj) => {
         const replacementFile = e.target.files[0];
         if (!replacementFile) return;
 
@@ -104,6 +107,7 @@ const DetailedInsCourse = () => {
             });
             alert("File replaced successfully.");
             fetchMyCourseFiles();
+            if (fileObj.inputRef?.current) fileObj.inputRef.current.value = "";
         } catch (err) {
             console.error("Replace failed:", err);
             alert("Failed to replace file.");
@@ -129,7 +133,7 @@ const DetailedInsCourse = () => {
 
     const handleDeleteFile = async (mediaUrl) => {
         try {
-            await axios.delete(`http://localhost:5258/api/Courses/delete-file`, {
+            await axios.delete("http://localhost:5258/api/Courses/delete-file", {
                 headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
                 data: { mediaUrl }
             });
@@ -144,7 +148,7 @@ const DetailedInsCourse = () => {
     const handleDeleteCourse = async () => {
         if (!window.confirm("Are you sure you want to delete the entire course?")) return;
         try {
-            await axios.delete(`http://localhost:5258/api/Courses/delete-course/${courseMeta.title}`, {
+            await axios.delete(`http://localhost:5258/api/Courses/delete-course-by-title/${encodeURIComponent(courseMeta.title)}`, {
                 headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
             });
             alert("Course deleted successfully.");
@@ -161,73 +165,53 @@ const DetailedInsCourse = () => {
         <div className="container mt-4">
             <div className="card shadow p-4">
                 <div className="d-flex justify-content-between align-items-center mb-3">
-                    <h2 className="mb-0">{courseMeta.title}</h2>
+                    <h2 className="mb-0">{courseMeta?.title}</h2>
                     <div>
-                        <button
-                            className="btn btn-success me-2"
-                            data-bs-toggle="modal"
-                            data-bs-target="#uploadModal"
-                        >
-                            ➕ Upload File
-                        </button>
-                        <button className="btn btn-danger" onClick={handleDeleteCourse}>
-                            🗑 Delete Course
-                        </button>
+                        <button className="btn btn-success me-2" data-bs-toggle="modal" data-bs-target="#uploadModal">➕ Upload File</button>
+                        <button className="btn btn-danger" onClick={handleDeleteCourse}>🗑 Delete Course</button>
                     </div>
                 </div>
 
-
                 <h5 className="mt-4">📂 Course Files:</h5>
+                {courseFiles.length === 0 && (
+                    <p className="text-muted fst-italic">No files uploaded for this course yet.</p>
+                )}
+
                 <div className="row">
                     {courseFiles.map((file, index) => (
                         <div className="col-md-6 col-lg-4 mb-3" key={index}>
                             <div className="card h-100 border-info shadow-sm">
                                 <div className="card-body">
                                     <h6 className="card-title">{getFileIcon(file.fileName)}</h6>
-
                                     <textarea
                                         className="form-control form-control-sm mb-2"
                                         defaultValue={file.description}
                                         onBlur={(e) => handleDescriptionEdit(file.mediaUrl, e.target.value)}
                                     />
-
-                                    <a
-                                        href={file.mediaUrl}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="btn btn-outline-primary btn-sm w-100 mb-2"
-                                    >
+                                    <a href={file.mediaUrl} target="_blank" rel="noopener noreferrer" className="btn btn-outline-primary btn-sm w-100 mb-2">
                                         🔍 View File
                                     </a>
-
                                     <label className="form-label small mt-2">Optional: Replace File</label>
                                     <input
                                         type="file"
+                                        ref={file.inputRef}
                                         className="form-control form-control-sm mb-2"
-                                        onChange={(e) => handleReplaceFile(e, file.mediaUrl)}
+                                        onChange={(e) => handleReplaceFile(e, file.mediaUrl, file)}
                                     />
-
-                                    <button
-                                        onClick={() => handleDeleteFile(file.mediaUrl)}
-                                        className="btn btn-outline-danger btn-sm w-100"
-                                    >
+                                    <button onClick={() => handleDeleteFile(file.mediaUrl)} className="btn btn-outline-danger btn-sm w-100">
                                         🗑 Delete File
                                     </button>
                                 </div>
                             </div>
                         </div>
                     ))}
-
                 </div>
 
                 <div className="text-end mt-4">
-                    <button className="btn btn-secondary" onClick={() => navigate("/instructor/courses")}>
-                        ⬅ Back to My Courses
-                    </button>
+                    <button className="btn btn-secondary" onClick={() => navigate("/instructor/courses")}>⬅ Back to My Courses</button>
                 </div>
             </div>
 
-            {/* Modal for uploading new file */}
             <div className="modal fade" id="uploadModal" tabIndex="-1" aria-labelledby="uploadModalLabel" aria-hidden="true">
                 <div className="modal-dialog modal-dialog-centered">
                     <div className="modal-content">
