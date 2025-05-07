@@ -1,0 +1,51 @@
+trigger:
+  branches:
+    include:
+      - main
+
+pool:
+  vmImage: 'windows-latest'
+
+variables:
+  buildConfiguration: 'Release'
+
+steps:
+# Install .NET SDK
+- task: UseDotNet@2
+  inputs:
+    packageType: 'sdk'
+    version: '8.0.x'
+  displayName: 'Install .NET SDK'
+
+# Restore Backend Dependencies
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'restore'
+    projects: 'backend/backend.csproj'
+  displayName: 'Restore Backend Dependencies'
+
+# Build Backend Project
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'build'
+    projects: 'backend/backend.csproj'
+    arguments: '--configuration $(buildConfiguration) --no-restore'
+  displayName: 'Build Backend Project'
+
+# Publish Backend Project
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'publish'
+    publishWebProjects: false
+    projects: 'backend/backend.csproj'
+    arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory) --no-restore'
+    zipAfterPublish: true
+  displayName: 'Publish Backend Project'
+
+# Publish Backend Artifact
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+    ArtifactName: 'backend-artifact'
+    publishLocation: 'Container'
+  displayName: 'Publish Backend Artifact'
