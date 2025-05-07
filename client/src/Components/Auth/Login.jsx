@@ -9,38 +9,6 @@ const Login = () => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-
-    // ✅ STATIC USERS FOR TESTING
-    const staticUsers = [
-      {
-        email: "student@edusync.com",
-        password: "student123",
-        name: "Student User",
-        userId: "stu001",
-        role: "Student",
-      },
-      {
-        email: "instructor@edusync.com",
-        password: "instructor123",
-        name: "Instructor User",
-        userId: "ins001",
-        role: "Instructor",
-      },
-    ];
-
-    const matchedUser = staticUsers.find(
-      (user) => user.email === email && user.password === password
-    );
-
-    if (matchedUser) {
-      localStorage.setItem("token", "demo-token");
-      localStorage.setItem("name", matchedUser.name);
-      localStorage.setItem("userId", matchedUser.userId);
-      localStorage.setItem("role", matchedUser.role);
-      navigate("/dashboard");
-      return;
-    }
-
     // 🌐 REAL API LOGIN WITHOUT ROLE INPUT
     try {
       const response = await axios.post("http://localhost:5258/api/Auth/login", {
@@ -52,7 +20,7 @@ const Login = () => {
 
       localStorage.setItem("token", jwt);
       localStorage.setItem("name", name);
-      // localStorage.setItem("userId", email);
+      localStorage.setItem("userId", email);
       localStorage.setItem("role", role); // ✅ role returned from backend
 
       navigate("/dashboard");

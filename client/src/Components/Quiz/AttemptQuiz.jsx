@@ -3,76 +3,100 @@ import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 
 const AttemptQuiz = () => {
-  const { id } = useParams(); // courseId
+  const { id } = useParams(); // courseTitle
   const navigate = useNavigate();
-  const [assessment, setAssessment] = useState(null);
+  const [instructorEmail, setInstructorEmail] = useState("");
+  const [assessment, setAssessment] = useState({
+    assessmentId: id,
+    title: "Sample React Quiz",
+    questions: [
+      { question: "What is JSX in React?", options: ["A compiler", "JS extension syntax", "Package manager", "CSS tool"] },
+      { question: "Which hook is used for state management?", options: ["useEffect", "useState", "useReducer", "useRef"] },
+      { question: "What is the virtual DOM?", options: ["UI library", "In-memory DOM", "Real DOM", "Browser API"] },
+      { question: "How do you pass data to child components?", options: ["State", "Props", "Events", "Hooks"] },
+      { question: "Which hook runs after every render?", options: ["useEffect", "useMemo", "useReducer", "useLayoutEffect"] },
+      { question: "How do you create a component in React?", options: ["Function/Class", "HTML", "CSS", "Script"] },
+      { question: "Which is a valid React event?", options: ["onClick", "click", "mouseClick", "press"] },
+      { question: "What does useRef return?", options: ["Mutable ref object", "Immutable state", "DOM node", "Boolean"] },
+      { question: "What is the purpose of keys in lists?", options: ["Performance", "Identification", "Styling", "Validation"] },
+      { question: "What is useEffect used for?", options: ["Side effects", "Props", "Styles", "DOM manipulation"] },
+      { question: "How do you initialize state?", options: ["useState", "useInit", "useStore", "React.init"] },
+      { question: "What is React.Fragment used for?", options: ["Group elements", "Styling", "Ref", "Event Binding"] },
+      { question: "Which file contains component logic?", options: [".js/.jsx", ".html", ".css", ".json"] },
+      { question: "What does useMemo do?", options: ["Memoize result", "Manage state", "Render component", "DOM changes"] },
+      { question: "Which is not a valid React feature?", options: ["Two-way binding", "JSX", "Hooks", "Virtual DOM"] }
+    ]
+  });
   const [answers, setAnswers] = useState({});
 
   useEffect(() => {
-    const fetchAssessment = async () => {
+    const fetchInstructorEmail = async () => {
       try {
-        const response = await axios.get(`http://localhost:5258/api/assessments/${id}`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
+        const response = await axios.get("http://localhost:5258/api/Courses/allcourses", {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
         });
-        setAssessment(response.data);
+        const courseMatch = response.data.find(c => c.title.toLowerCase() === decodeURIComponent(id).toLowerCase());
+        if (courseMatch) setInstructorEmail(courseMatch.instructorEmail);
       } catch (error) {
-        console.error("API call failed. Loading static quiz.");
-        // 🔁 STATIC FALLBACK DATA
-        const staticAssessment = {
-          assessmentId: "static-assess-001",
-          title: "Sample React Quiz",
-          questions: [
-            {
-              question: "What is JSX in React?",
-              options: ["A compiler", "JS extension syntax", "Package manager", "CSS tool"],
-            },
-            {
-              question: "Which hook is used for state management?",
-              options: ["useEffect", "useState", "useReducer", "useRef"],
-            },
-          ],
-        };
-        setAssessment(staticAssessment);
+        console.error("Error fetching instructor email", error);
       }
     };
-
-    fetchAssessment();
+    fetchInstructorEmail();
   }, [id]);
 
+  const correctAnswers = {
+    0: "JS extension syntax",
+    1: "useState",
+    2: "In-memory DOM",
+    3: "Props",
+    4: "useEffect",
+    5: "Function/Class",
+    6: "onClick",
+    7: "Mutable ref object",
+    8: "Identification",
+    9: "Side effects",
+    10: "useState",
+    11: "Group elements",
+    12: ".js/.jsx",
+    13: "Memoize result",
+    14: "Two-way binding"
+  };
+
   const handleOptionChange = (questionIndex, selectedOption) => {
-    setAnswers((prev) => ({
-      ...prev,
-      [questionIndex]: selectedOption,
-    }));
+    setAnswers(prev => ({ ...prev, [questionIndex]: selectedOption }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    let score = 0;
+    Object.entries(answers).forEach(([index, answer]) => {
+      if (correctAnswers[index] === answer) score++;
+    });
+    const epochId = `assess-${Date.now()}`;
+
     const payload = {
-      assessmentId: assessment.assessmentId,
-      userId: localStorage.getItem("userId") || "static-user-001",
-      answers: answers,
+      assessmentId: epochId,
+      userId: localStorage.getItem("userId"),
+      courseId: assessment.assessmentId,
+      instructorEmail,
+      answers,
+      score
     };
 
     try {
       await axios.post("http://localhost:5258/api/assessments/submit", payload, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
       });
+
       alert("Quiz submitted successfully!");
     } catch (error) {
-      alert("Quiz submitted (static mode).");
-      console.log("Simulated submission:", payload);
+      console.error("Submission failed:", error);
+      alert("Quiz submission failed.");
     }
 
     navigate("/results");
   };
-
-  if (!assessment) return <div className="container mt-5">Loading quiz...</div>;
 
   return (
     <div className="container mt-4">

@@ -4,15 +4,15 @@ import axios from "axios";
 const Results = () => {
   const [results, setResults] = useState([]);
   const role = localStorage.getItem("role");
-  const userId = localStorage.getItem("userId");
+  const userId = localStorage.getItem("userId"); // Email of the user
 
   useEffect(() => {
     const fetchResults = async () => {
       try {
         const url =
           role === "Instructor"
-            ? "http://localhost:5258/api/results/all"
-            : `http://localhost:5258/api/results/user/${userId}`;
+            ? "http://localhost:5258/api/assessments/results/all"
+            : `http://localhost:5258/api/assessments/results/user/${encodeURIComponent(userId)}`;
 
         const response = await axios.get(url, {
           headers: {
@@ -20,48 +20,18 @@ const Results = () => {
           },
         });
 
-        setResults(response.data);
+        let filteredResults = response.data;
+
+        if (role === "Instructor") {
+          // Only include results for this instructor's courses
+          filteredResults = response.data.filter(
+            (r) => r.instructorEmail?.toLowerCase() === userId.toLowerCase()
+          );
+        }
+
+        setResults(filteredResults);
       } catch (error) {
         console.error("Error fetching results", error);
-
-        // 🔁 STATIC FALLBACK DATA
-        const staticResults = role === "Instructor"
-          ? [
-              {
-                resultId: "r001",
-                assessmentTitle: "React Basics",
-                score: 9,
-                maxScore: 10,
-                attemptDate: new Date().toISOString(),
-                studentName: "Alice Johnson",
-              },
-              {
-                resultId: "r002",
-                assessmentTitle: "JavaScript Core",
-                score: 7,
-                maxScore: 10,
-                attemptDate: new Date().toISOString(),
-                studentName: "Bob Smith",
-              },
-            ]
-          : [
-              {
-                resultId: "r003",
-                assessmentTitle: "React Basics",
-                score: 8,
-                maxScore: 10,
-                attemptDate: new Date().toISOString(),
-              },
-              {
-                resultId: "r004",
-                assessmentTitle: "Azure Fundamentals",
-                score: 6,
-                maxScore: 10,
-                attemptDate: new Date().toISOString(),
-              },
-            ];
-
-        setResults(staticResults);
       }
     };
 
@@ -87,9 +57,9 @@ const Results = () => {
           </thead>
           <tbody>
             {results.map((res, index) => (
-              <tr key={res.resultId}>
+              <tr key={index}>
                 <td>{index + 1}</td>
-                <td>{res.assessmentTitle}</td>
+                <td>{res.courseId}</td>
                 <td>{res.score}</td>
                 <td>{res.maxScore || 100}</td>
                 <td>{new Date(res.attemptDate).toLocaleString()}</td>
