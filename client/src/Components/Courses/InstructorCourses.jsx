@@ -30,7 +30,7 @@ const InstructorCourses = () => {
   useEffect(() => {
     const fetchInstructorCourses = async () => {
       try {
-        const response = await axios.get("http://localhost:5258/api/Courses/mycourses", {
+        const response = await axios.get("https://edusync-backend.azurewebsites.net/api/Courses/mycourses", {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`
           }

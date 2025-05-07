@@ -11,7 +11,7 @@ const Login = () => {
     e.preventDefault();
     // 🌐 REAL API LOGIN WITHOUT ROLE INPUT
     try {
-      const response = await axios.post("http://localhost:5258/api/Auth/login", {
+      const response = await axios.post("https://edusync-backend.azurewebsites.net/api/Auth/login", {
         email,
         password,
       });

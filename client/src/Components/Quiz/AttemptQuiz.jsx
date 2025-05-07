@@ -32,7 +32,7 @@ const AttemptQuiz = () => {
   useEffect(() => {
     const fetchInstructorEmail = async () => {
       try {
-        const response = await axios.get("http://localhost:5258/api/Courses/allcourses", {
+        const response = await axios.get("https://edusync-backend.azurewebsites.net/api/Courses/allcourses", {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
         });
         const courseMatch = response.data.find(c => c.title.toLowerCase() === decodeURIComponent(id).toLowerCase());
@@ -85,7 +85,7 @@ const AttemptQuiz = () => {
     };
 
     try {
-      await axios.post("http://localhost:5258/api/assessments/submit", payload, {
+      await axios.post("https://edusync-backend.azurewebsites.net/api/assessments/submit", payload, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
       });
 
