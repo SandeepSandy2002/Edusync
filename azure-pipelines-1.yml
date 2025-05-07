@@ -10,29 +10,31 @@ variables:
   buildConfiguration: 'Release'
 
 steps:
-# Install .NET SDK
+# Install .NET 9 Preview SDK
 - task: UseDotNet@2
   inputs:
     packageType: 'sdk'
-    version: '8.0.x'
-  displayName: 'Install .NET SDK'
+    version: '9.0.x'
+    includePreviewVersions: true
+  displayName: 'Install .NET 9 SDK (Preview)'
 
-# Restore Backend Dependencies
+# Restore Dependencies
 - task: DotNetCoreCLI@2
   inputs:
     command: 'restore'
     projects: 'backend/backend.csproj'
-  displayName: 'Restore Backend Dependencies'
+    arguments: '--verbosity detailed'
+  displayName: 'Restore Dependencies'
 
-# Build Backend Project
+# Build Project
 - task: DotNetCoreCLI@2
   inputs:
     command: 'build'
     projects: 'backend/backend.csproj'
     arguments: '--configuration $(buildConfiguration) --no-restore'
-  displayName: 'Build Backend Project'
+  displayName: 'Build Project'
 
-# Publish Backend Project
+# Publish Project
 - task: DotNetCoreCLI@2
   inputs:
     command: 'publish'
@@ -40,12 +42,12 @@ steps:
     projects: 'backend/backend.csproj'
     arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory) --no-restore'
     zipAfterPublish: true
-  displayName: 'Publish Backend Project'
+  displayName: 'Publish Project'
 
-# Publish Backend Artifact
+# Publish Artifact
 - task: PublishBuildArtifacts@1
   inputs:
     PathtoPublish: '$(Build.ArtifactStagingDirectory)'
     ArtifactName: 'backend-artifact'
     publishLocation: 'Container'
-  displayName: 'Publish Backend Artifact'
+  displayName: 'Publish Artifact'
