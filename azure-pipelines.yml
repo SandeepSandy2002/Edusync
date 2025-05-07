@@ -20,16 +20,16 @@ stages:
       displayName: 'Install Node.js'
 
     - script: npm install
-      workingDirectory: 'capg_parallel_proj/client'
+      workingDirectory: 'client'
       displayName: 'Install Frontend Dependencies'
 
     - script: npm run build
-      workingDirectory: 'capg_parallel_proj/client'
+      workingDirectory: 'client'
       displayName: 'Build Frontend'
 
     - task: ArchiveFiles@2
       inputs:
-        rootFolderOrFile: 'capg_parallel_proj/client/build'
+        rootFolderOrFile: 'client/build'
         includeRootFolder: false
         archiveType: 'zip'
         archiveFile: '$(Build.ArtifactStagingDirectory)/frontend.zip'
@@ -41,4 +41,4 @@ stages:
         PathtoPublish: '$(Build.ArtifactStagingDirectory)'
         ArtifactName: 'drop'
         publishLocation: 'Container'
-      displayName: 'Publish Artifact'
+      displayName: 'Publish Artifact'
