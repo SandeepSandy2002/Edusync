@@ -9,45 +9,74 @@ pool:
 variables:
   buildConfiguration: 'Release'
 
-steps:
-# Install .NET 9 Preview SDK
-- task: UseDotNet@2
-  inputs:
-    packageType: 'sdk'
-    version: '9.0.x'
-    includePreviewVersions: true
-  displayName: 'Install .NET 9 SDK (Preview)'
+stages:
+# Stage 1: Build and Publish Backend
+- stage: BuildBackend
+  displayName: 'Build & Publish Backend'
+  jobs:
+  - job: BuildJob
+    displayName: 'Build Backend Project'
+    steps:
+    - checkout: self
 
-# Restore Dependencies
-- task: DotNetCoreCLI@2
-  inputs:
-    command: 'restore'
-    projects: 'backend/backend.csproj'
-    arguments: '--verbosity detailed'
-  displayName: 'Restore Dependencies'
+    # Install .NET 9 SDK (Preview)
+    - task: UseDotNet@2
+      inputs:
+        packageType: 'sdk'
+        version: '9.0.x'
+        includePreviewVersions: true
+      displayName: 'Install .NET 9 SDK (Preview)'
 
-# Build Project
-- task: DotNetCoreCLI@2
-  inputs:
-    command: 'build'
-    projects: 'backend/backend.csproj'
-    arguments: '--configuration $(buildConfiguration) --no-restore'
-  displayName: 'Build Project'
+    # Restore Dependencies
+    - task: DotNetCoreCLI@2
+      inputs:
+        command: 'restore'
+        projects: 'backend/backend.csproj'
+        arguments: '--verbosity detailed'
+      displayName: 'Restore Dependencies'
 
-# Publish Project
-- task: DotNetCoreCLI@2
-  inputs:
-    command: 'publish'
-    publishWebProjects: false
-    projects: 'backend/backend.csproj'
-    arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory) --no-restore'
-    zipAfterPublish: true
-  displayName: 'Publish Project'
+    # Build Project
+    - task: DotNetCoreCLI@2
+      inputs:
+        command: 'build'
+        projects: 'backend/backend.csproj'
+        arguments: '--configuration $(buildConfiguration) --no-restore'
+      displayName: 'Build Project'
 
-# Publish Artifact
-- task: PublishBuildArtifacts@1
-  inputs:
-    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-    ArtifactName: 'backend-artifact'
-    publishLocation: 'Container'
-  displayName: 'Publish Artifact'
+    # Publish Project
+    - task: DotNetCoreCLI@2
+      inputs:
+        command: 'publish'
+        publishWebProjects: false
+        projects: 'backend/backend.csproj'
+        arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory) --no-restore'
+        zipAfterPublish: true
+      displayName: 'Publish Project'
+
+    # Publish Artifact
+    - task: PublishBuildArtifacts@1
+      inputs:
+        PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+        ArtifactName: 'backend-artifact'
+        publishLocation: 'Container'
+      displayName: 'Publish Artifact'
+
+# Stage 2: Deploy to Azure
+- stage: DeployBackend
+  displayName: 'Deploy Backend to Azure'
+  dependsOn: BuildBackend
+  jobs:
+  - job: DeployJob
+    displayName: 'Deploy to Azure Web App'
+    steps:
+    - download: current
+      artifact: backend-artifact
+
+    - task: AzureRmWebAppDeployment@5
+      inputs:
+        ConnectionType: 'AzureRM'
+        azureSubscription: 'Azure for Students (bedc7931-d790-4c13-b257-15a58fdfea2f)'
+        appType: 'webApp'
+        WebAppName: 'edusync-backend'
+        package: '$(Pipeline.Workspace)/backend-artifact/*.zip'
+      displayName: 'Deploy Backend to Azure App Service'
