@@ -7,13 +7,15 @@ pool:
   vmImage: 'ubuntu-latest'
 
 stages:
-# Build Stage
+# Stage 1: Build Frontend
 - stage: BuildFrontend
   displayName: 'Build Frontend'
   jobs:
   - job: BuildJob
-    displayName: 'Install & Build'
+    displayName: 'Install & Build Frontend'
     steps:
+    - checkout: self
+
     - task: NodeTool@0
       inputs:
         versionSpec: '14.x'
@@ -39,6 +41,26 @@ stages:
     - task: PublishBuildArtifacts@1
       inputs:
         PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-        ArtifactName: 'drop'
+        ArtifactName: 'frontend'
         publishLocation: 'Container'
-      displayName: 'Publish Artifact'
+      displayName: 'Publish Frontend Artifact'
+
+# Stage 2: Deploy to Azure
+- stage: DeployFrontend
+  displayName: 'Deploy Frontend to Azure'
+  dependsOn: BuildFrontend
+  jobs:
+  - job: DeployJob
+    displayName: 'Deploy to Azure Web App'
+    steps:
+    - download: current
+      artifact: frontend
+
+    - task: AzureRmWebAppDeployment@5
+      inputs:
+        ConnectionType: 'AzureRM'
+        azureSubscription: 'Azure for Students (bedc7931-d790-4c13-b257-15a58fdfea2f)'
+        appType: 'webAppLinux'
+        WebAppName: 'edusync-frontend'
+        packageForLinux: '$(Pipeline.Workspace)/frontend/frontend.zip'
+      displayName: 'Deploy Frontend to Azure Web App'

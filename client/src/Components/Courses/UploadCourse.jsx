@@ -20,7 +20,7 @@ const UploadCourse = () => {
     formData.append("mediaFile", file);
 
     try {
-      const response = await axios.post("http://localhost:5258/api/Courses", formData, {
+      const response = await axios.post("https://edusync-backend.azurewebsites.net/api/Courses", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
           Authorization: `Bearer ${localStorage.getItem("token")}`

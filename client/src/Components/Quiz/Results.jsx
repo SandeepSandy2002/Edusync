@@ -11,8 +11,8 @@ const Results = () => {
       try {
         const url =
           role === "Instructor"
-            ? "http://localhost:5258/api/assessments/results/all"
-            : `http://localhost:5258/api/assessments/results/user/${encodeURIComponent(userId)}`;
+            ? "https://edusync-backend.azurewebsites.net/api/assessments/results/all"
+            : `https://edusync-backend.azurewebsites.net/api/assessments/results/user/${encodeURIComponent(userId)}`;
 
         const response = await axios.get(url, {
           headers: {

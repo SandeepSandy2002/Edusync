@@ -12,7 +12,7 @@ const Register = () => {
   const handleRegister = async (e) => {
     e.preventDefault();
 
-    const url = "http://localhost:5258/api/Auth/register";
+    const url = "https://edusync-backend.azurewebsites.net/api/Auth/register";
 
     try {
       await axios.post(url, {
