@@ -71,7 +71,7 @@ namespace backend.Controllers
                     r.Score,
                     AttemptDate = r.SubmittedAt,
                     AssessmentTitle = r.AssessmentId,
-                    MaxScore = 100 // Static for now
+                    MaxScore = 15 // Static for now
                 })
                 .ToListAsync();
 
