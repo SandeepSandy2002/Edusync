@@ -7,13 +7,14 @@ pool:
   vmImage: 'ubuntu-latest'
 
 stages:
-# Build Stage
 - stage: BuildFrontend
   displayName: 'Build Frontend'
   jobs:
   - job: BuildJob
-    displayName: 'Install & Build'
+    displayName: 'Install & Build Frontend'
     steps:
+    - checkout: self  # ✅ Ensures latest code is pulled from GitHub
+
     - task: NodeTool@0
       inputs:
         versionSpec: '14.x'
@@ -39,6 +40,6 @@ stages:
     - task: PublishBuildArtifacts@1
       inputs:
         PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-        ArtifactName: 'drop'
+        ArtifactName: 'frontend'
         publishLocation: 'Container'
-      displayName: 'Publish Artifact'
+      displayName: 'Publish Frontend Artifact'
