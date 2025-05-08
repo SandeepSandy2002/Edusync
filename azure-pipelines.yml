@@ -1,0 +1,45 @@
+trigger:
+  branches:
+    include:
+      - main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+stages:
+- stage: BuildFrontend
+  displayName: 'Build Frontend'
+  jobs:
+  - job: BuildJob
+    displayName: 'Install & Build Frontend'
+    steps:
+    - checkout: self  # ✅ Ensures latest code is pulled from GitHub
+
+    - task: NodeTool@0
+      inputs:
+        versionSpec: '14.x'
+      displayName: 'Install Node.js'
+
+    - script: npm install
+      workingDirectory: 'client'
+      displayName: 'Install Frontend Dependencies'
+
+    - script: npm run build
+      workingDirectory: 'client'
+      displayName: 'Build Frontend'
+
+    - task: ArchiveFiles@2
+      inputs:
+        rootFolderOrFile: 'client/build'
+        includeRootFolder: false
+        archiveType: 'zip'
+        archiveFile: '$(Build.ArtifactStagingDirectory)/frontend.zip'
+        replaceExistingArchive: true
+      displayName: 'Archive Frontend Build'
+
+    - task: PublishBuildArtifacts@1
+      inputs:
+        PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+        ArtifactName: 'frontend'
+        publishLocation: 'Container'
+      displayName: 'Publish Frontend Artifact'
