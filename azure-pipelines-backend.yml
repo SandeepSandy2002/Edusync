@@ -24,7 +24,7 @@ stages:
       inputs:
         packageType: 'sdk'
         version: '9.0.x'
-      displayName: 'Install .NET 8 SDK'
+      displayName: 'Install .NET 9 SDK'
 
     # Restore Dependencies
     - task: DotNetCoreCLI@2
