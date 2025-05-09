@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
+import "./CourseDetail.css";
 
 const CourseDetail = () => {
   const { courseTitle } = useParams();
@@ -30,8 +31,8 @@ const CourseDetail = () => {
 
         const mediaFiles = matchedFiles.map(file => ({
           url: file.mediaUrl,
-          fileName: file.mediaUrl.split('/').pop(),
-          description: file.description // ✅ Add this field
+          fileName: file.mediaUrl.split("/").pop(),
+          description: file.description
         }));
 
         setCourseInfo({
@@ -51,7 +52,7 @@ const CourseDetail = () => {
   }, [courseTitle, navigate]);
 
   const getFileIcon = (fileName) => {
-    const ext = fileName.split('.').pop().toLowerCase();
+    const ext = fileName.split(".").pop().toLowerCase();
     if (["mp4", "webm"].includes(ext)) return "🎬 Video";
     if (["pdf"].includes(ext)) return "📘 PDF";
     if (["txt", "md"].includes(ext)) return "📄 Text";
@@ -59,42 +60,36 @@ const CourseDetail = () => {
     return "📁 File";
   };
 
-  if (!courseInfo) return <div className="container mt-5">Loading course details...</div>;
+  if (!courseInfo) return <div className="container">Loading course details...</div>;
 
   return (
-    <div className="container mt-4">
-      <div className="card shadow p-4">
-        <h2 className="mb-2">{courseInfo.title}</h2>
-        <div className="mb-3">
-          <strong>Instructor:</strong> {courseInfo.instructorName} <br />
-          <strong>Email:</strong> {courseInfo.instructorEmail}
-        </div>
+    <div className="course-detail-container">
+      <div className="course-card">
+        <h2>{courseInfo.title}</h2>
+        <p><strong>Instructor:</strong> {courseInfo.instructorName}</p>
+        <p><strong>Email:</strong> {courseInfo.instructorEmail}</p>
 
-        <h5 className="mt-4">📂 Course Files:</h5>
-        <div className="row">
+        <h4>📂 Course Files</h4>
+        <div className="file-grid">
           {courseInfo.mediaFiles.map((file, index) => (
-            <div className="col-md-6 col-lg-4 mb-3" key={index}>
-              <div className="card h-100 border-info shadow-sm">
-                <div className="card-body">
-                  <h6 className="card-title">{getFileIcon(file.fileName)}</h6>
-                  <p className="card-text text-truncate">{file.description}</p>
-                  <a
-                    href={file.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="btn btn-outline-primary btn-sm"
-                  >
-                    View File
-                  </a>
-                </div>
-              </div>
+            <div className="file-card" key={index}>
+              <p className="file-icon">{getFileIcon(file.fileName)}</p>
+              <p className="file-description">{file.description}</p>
+              <a
+                href={file.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="view-button"
+              >
+                View File
+              </a>
             </div>
           ))}
         </div>
 
-        <div className="text-end mt-4">
+        <div className="quiz-button-container">
           <button
-            className="btn btn-success"
+            className="quiz-button"
             onClick={() => navigate(`/attempt-quiz/${courseInfo.title}`)}
           >
             Take Quiz

@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import "./Results.css";
 
 const Results = () => {
   const [results, setResults] = useState([]);
   const role = localStorage.getItem("role");
-  const userId = localStorage.getItem("userId"); // Email of the user
+  const userId = localStorage.getItem("userId");
 
   useEffect(() => {
     const fetchResults = async () => {
@@ -23,7 +24,6 @@ const Results = () => {
         let filteredResults = response.data;
 
         if (role === "Instructor") {
-          // Only include results for this instructor's courses
           filteredResults = response.data.filter(
             (r) => r.instructorEmail?.toLowerCase() === userId.toLowerCase()
           );
@@ -39,35 +39,37 @@ const Results = () => {
   }, [role, userId]);
 
   return (
-    <div className="container mt-4">
-      <h3 className="mb-4">📊 Quiz Results</h3>
+    <div className="results-container">
+      <h2>My Quiz Results</h2>
       {results.length === 0 ? (
-        <p>No quiz results available yet.</p>
+        <p className="no-results">No quiz results available yet.</p>
       ) : (
-        <table className="table table-bordered table-hover">
-          <thead className="table-dark">
-            <tr>
-              <th>#</th>
-              <th>Quiz Title</th>
-              <th>Score</th>
-              <th>Max Score</th>
-              <th>Attempt Date</th>
-              {role === "Instructor" && <th>Student Name</th>}
-            </tr>
-          </thead>
-          <tbody>
-            {results.map((res, index) => (
-              <tr key={index}>
-                <td>{index + 1}</td>
-                <td>{res.courseId}</td>
-                <td>{res.score}</td>
-                <td>{res.maxScore || 100}</td>
-                <td>{new Date(res.attemptDate).toLocaleString()}</td>
-                {role === "Instructor" && <td>{res.studentName}</td>}
+        <div className="results-table-container">
+          <table className="results-table">
+            <thead>
+              <tr>
+                <th>No.</th>
+                <th>Quiz</th>
+                <th>Score</th>
+                <th>Out of</th>
+                <th>Date</th>
+                {role === "Instructor" && <th>Student</th>}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {results.map((res, index) => (
+                <tr key={index}>
+                  <td>{index + 1}</td>
+                  <td>{res.courseId}</td>
+                  <td className="score-cell">{res.score}</td>
+                  <td>{res.maxScore || 100}</td>
+                  <td>{new Date(res.attemptDate).toLocaleDateString()}</td>
+                  {role === "Instructor" && <td>{res.studentName}</td>}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );

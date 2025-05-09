@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import "./Login.css"; // We'll create this CSS file
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -9,9 +10,8 @@ const Login = () => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    // 🌐 REAL API LOGIN WITHOUT ROLE INPUT
     try {
-      const response = await axios.post("https://edusync-backend.azurewebsites.net/api/Auth/login", {
+      const response = await axios.post("https://localhost:7116/api/Auth/login", {
         email,
         password,
       });
@@ -21,7 +21,7 @@ const Login = () => {
       localStorage.setItem("token", jwt);
       localStorage.setItem("name", name);
       localStorage.setItem("userId", email);
-      localStorage.setItem("role", role); // ✅ role returned from backend
+      localStorage.setItem("role", role);
 
       navigate("/dashboard");
     } catch (error) {
@@ -30,30 +30,31 @@ const Login = () => {
   };
 
   return (
-    <div className="container mt-5">
-      <h2 className="text-center mb-4">EduSync Login</h2>
-      <form className="mx-auto" style={{ maxWidth: "400px" }} onSubmit={handleLogin}>
-        <div className="mb-3">
-          <label>Email</label>
-          <input
-            type="email"
-            className="form-control"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required />
-        </div>
-        <div className="mb-3">
-          <label>Password</label>
-          <input
-            type="password"
-            className="form-control"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required />
-        </div>
-        {/* 🔁 Removed Role Selection – backend assigns it */}
-        <button className="btn btn-primary w-100" type="submit">Login</button>
-      </form>
+    <div className="login-container">
+      <div className="login-box">
+        <h2>EduSync Login</h2>
+        <form onSubmit={handleLogin}>
+          <div className="input-group">
+            <label>Email</label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
+          <div className="input-group">
+            <label>Password</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </div>
+          <button type="submit">Login</button>
+        </form>
+      </div>
     </div>
   );
 };

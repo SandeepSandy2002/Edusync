@@ -23,7 +23,7 @@ namespace backend.Controllers
             _context = context;
         }
 
-        // ✅ SUBMIT QUIZ RESULT → Event Hub
+        //SUBMIT QUIZ RESULT → Event Hub
         [HttpPost("submit")]
         [Authorize]
         public async Task<IActionResult> SubmitQuiz([FromBody] QuizResultDto dto)
@@ -53,7 +53,7 @@ namespace backend.Controllers
             }
         }
 
-        // ✅ GET: api/assessments/results/user/{userId} (userId = student email)
+        
         [HttpGet("results/user/{userId}")]
         [Authorize]
         public async Task<IActionResult> GetUserResults(string userId)
@@ -78,7 +78,7 @@ namespace backend.Controllers
             return Ok(results);
         }
 
-        // ✅ GET: api/assessments/results/all (Instructor view)
+        // GET: api/assessments/results/all (Instructor view)
         [HttpGet("results/all")]
         [Authorize(Roles = "Instructor")]
         public async Task<IActionResult> GetAllResults()

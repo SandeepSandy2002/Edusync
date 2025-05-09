@@ -1,0 +1,48 @@
+/* Navbar.css */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    background-color: #3498db; /* Blue color */
+    color: white;
+    font-family: Arial, sans-serif;
+  }
+  
+  .navbar a {
+    color: white;
+    text-decoration: none;
+    margin: 0 10px;
+    padding: 5px;
+  }
+  
+  .navbar a:hover {
+    text-decoration: underline;
+  }
+  
+  .navbar-logo a {
+    font-size: 1.2rem;
+    font-weight: bold;
+  }
+  
+  .navbar-links {
+    display: flex;
+  }
+  
+  .navbar-auth {
+    display: flex;
+    align-items: center;
+  }
+  
+  .navbar-auth button {
+    background: none;
+    border: 1px solid white;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 3px;
+    cursor: pointer;
+  }
+  
+  .navbar-auth button:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+  }

@@ -1,5 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import "./Dashboard.css"; // We'll create this CSS file
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -7,33 +8,35 @@ const Dashboard = () => {
   const role = localStorage.getItem("role");
 
   return (
-    <div className="container mt-5">
-      <div className="text-center mb-4">
+    <div className="dashboard-container">
+      <div className="dashboard-header">
         <h2>Welcome, {name}!</h2>
-        <p className="lead">Role: <strong>{role}</strong></p>
+        <p>You are logged in as: <span className="role-badge">{role}</span></p>
       </div>
 
-      {role === "Student" && (
-        <div className="d-flex flex-column align-items-center">
-          <button className="btn btn-primary mb-3 w-50" onClick={() => navigate("/courses")}>
-            📘 View Courses
-          </button>
-          <button className="btn btn-secondary mb-3 w-50" onClick={() => navigate("/results")}>
-            📊 View Quiz Results
-          </button>
-        </div>
-      )}
+      <div className="dashboard-buttons">
+        {role === "Student" && (
+          <>
+            <button onClick={() => navigate("/courses")}>
+              View Courses
+            </button>
+            <button onClick={() => navigate("/results")}>
+              View Quiz Results
+            </button>
+          </>
+        )}
 
-      {role === "Instructor" && (
-        <div className="d-flex flex-column align-items-center">
-          <button className="btn btn-success mb-3 w-50" onClick={() => navigate("/upload-course")}>
-            ⬆️ Upload New Course
-          </button>
-          <button className="btn btn-warning mb-3 w-50" onClick={() => navigate("/results")}>
-            📈 View Student Results
-          </button>
-        </div>
-      )}
+        {role === "Instructor" && (
+          <>
+            <button onClick={() => navigate("/upload-course")}>
+              Upload New Course
+            </button>
+            <button onClick={() => navigate("/results")}>
+              View Student Results
+            </button>
+          </>
+        )}
+      </div>
     </div>
   );
 };

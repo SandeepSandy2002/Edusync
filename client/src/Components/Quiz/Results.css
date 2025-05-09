@@ -1,0 +1,59 @@
+.results-container {
+    max-width: 900px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #f5f5f5;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    font-family: Arial, sans-serif;
+  }
+  
+  .results-container h2 {
+    color: #333;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  
+  .no-results {
+    text-align: center;
+    color: #666;
+    font-style: italic;
+  }
+  
+  .results-table-container {
+    overflow-x: auto;
+  }
+  
+  .results-table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: white;
+  }
+  
+  .results-table th, .results-table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+  }
+  
+  .results-table th {
+    background-color: #e0e0e0;
+    color: #333;
+    font-weight: bold;
+  }
+  
+  .results-table tr:hover {
+    background-color: #f0f0f0;
+  }
+  
+  .score-cell {
+    color: #2e7d32;
+    font-weight: bold;
+  }
+  
+  @media (max-width: 600px) {
+    .results-table th, .results-table td {
+      padding: 8px 10px;
+      font-size: 14px;
+    }
+  }

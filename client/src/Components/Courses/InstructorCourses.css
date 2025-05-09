@@ -1,0 +1,79 @@
+.instructor-courses {
+    max-width: 1000px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #f0f8ff;
+    font-family: Arial, sans-serif;
+  }
+  
+  .instructor-courses h2 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 25px;
+  }
+  
+  .courses-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+  }
+  
+  .course-card {
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 15px;
+  }
+  
+  .course-card h3 {
+    color: #0066cc;
+    margin-top: 0;
+    margin-bottom: 10px;
+  }
+  
+  .description {
+    color: #555;
+    font-size: 14px;
+    margin-bottom: 15px;
+  }
+  
+  .view-button {
+    background-color: #0066cc;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 3px;
+    cursor: pointer;
+  }
+  
+  .view-button:hover {
+    background-color: #0055aa;
+  }
+  
+  .error-message {
+    color: #cc0000;
+    background-color: #ffeeee;
+    padding: 10px;
+    border-radius: 3px;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+  
+  .loading-message {
+    text-align: center;
+    color: #666;
+    padding: 20px;
+  }
+  
+  .no-courses {
+    text-align: center;
+    color: #666;
+    font-style: italic;
+    padding: 20px;
+  }
+  
+  @media (max-width: 600px) {
+    .courses-grid {
+      grid-template-columns: 1fr;
+    }
+  }
