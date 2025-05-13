@@ -11,7 +11,7 @@ const CourseDetail = () => {
   useEffect(() => {
     const fetchCourseFiles = async () => {
       try {
-        const response = await axios.get("https://edusync-backend.azurewebsites.net/api/Courses/allcourses", {
+        const response = await axios.get("https://edusync-server.azurewebsites.net/api/Courses/allcourses", {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`
           }
