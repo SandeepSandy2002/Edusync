@@ -25,7 +25,7 @@ const InstructorCourses = () => {
     const fetchInstructorCourses = async () => {
       try {
         const response = await axios.get(
-          "https://edusync-backend.azurewebsites.net/api/Courses/mycourses",
+          "https://edusync-server.azurewebsites.net/api/Courses/mycourses",
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
