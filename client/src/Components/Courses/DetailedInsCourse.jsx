@@ -19,7 +19,7 @@ const DetailedInsCourse = () => {
   const fetchMyCourseFiles = async () => {
     try {
       const response = await axios.get(
-        "https://edusync-backend.azurewebsites.net/api/Courses/mycourses",
+        "https://edusync-server.azurewebsites.net/api/Courses/mycourses",
         {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         }
@@ -68,7 +68,7 @@ const DetailedInsCourse = () => {
     formData.append("Description", newDescription);
 
     try {
-      await axios.post("https://edusync-backend.azurewebsites.net/api/Courses", formData, {
+      await axios.post("https://edusync-server.azurewebsites.net/api/Courses", formData, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
       alert("File uploaded successfully!");
@@ -84,7 +84,7 @@ const DetailedInsCourse = () => {
     if (!window.confirm("Are you sure you want to delete this course?")) return;
     try {
       await axios.delete(
-        `https://edusync-backend.azurewebsites.net/api/Courses/delete-course-by-title/${encodeURIComponent(
+        `https://edusync-server.azurewebsites.net/api/Courses/delete-course-by-title/${encodeURIComponent(
           courseMeta.title
         )}`,
         {
